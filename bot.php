@@ -19,7 +19,7 @@ if ($tc == "private") {
         $theText = "📣 - کاربر عزیز شما عضو کانال اسپانسر  ربات نیستید و امکان استفاده از ربات را ندارید .\n\n⭕️ لطفا در کانال زیر عضو شوید :\n\n🆔 @$botChanel[0]\n\nسپس به ربات برگشته و مجدد امتحان کنید ✔️";
         SendMessage($chat_id, $theText, "HTML", $message_id, $botChanelKeyboard);
     } else {
-        if (strpos($text, "/start _") !== false) {
+        if (str_starts_with('$text', '/start _')) {
             $idFile = str_replace("/start _", "", $text);
             $File = mysqli_query($conn, "SELECT * FROM `{$filesTable}` WHERE `code` = '{$idFile}'");
             $download = mysqli_fetch_assoc($File);
