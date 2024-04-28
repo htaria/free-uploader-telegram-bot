@@ -14,12 +14,13 @@ if (!$ok) die("Sik!");
 //--------------------
 include './config.php';
 //----------START----------
+
 if ($tc == "private") {
     if (check_channel_member("@$botChanel[0]", $chat_id) == "no") {
         $theText = "📣 - کاربر عزیز شما عضو کانال اسپانسر  ربات نیستید و امکان استفاده از ربات را ندارید .\n\n⭕️ لطفا در کانال زیر عضو شوید :\n\n🆔 @$botChanel[0]\n\nسپس به ربات برگشته و مجدد امتحان کنید ✔️";
         SendMessage($chat_id, $theText, "HTML", $message_id, $botChanelKeyboard);
     } else {
-        if (str_starts_with('$text', '/start _')) {
+        if (str_starts_with($text, '/start _')) {
             $idFile = str_replace("/start _", "", $text);
             $File = mysqli_query($conn, "SELECT * FROM `{$filesTable}` WHERE `code` = '{$idFile}'");
             $download = mysqli_fetch_assoc($File);
@@ -70,8 +71,8 @@ if ($tc == "private") {
         if ($text == "🗑-حذف فایل" && $step == "none") {
             $theText = "🗂-لطفا شناسه فایل مورد نظر خود را جهت حذف از ربات ارسال کنید:";
             SendMessage($chat_id, $theText, "HTML", $message_id, $adminBack);
-            $conn->query("UPDATE `{$usersTable}` SET `step`='Delete' WHERE `user_id` = '{$from_id}' LIMIT 1");
-        } else if ($step == "Delete" && $stop == "No") {
+            $conn->query("UPDATE `{$usersTable}` SET `step`='Delete' WHERE `id` = '{$from_id}' LIMIT 1");
+        } else if ($step == "Delete" && !in_array($text, $stop)) {
             $query = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM `{$filesTable}` WHERE `code` = '{$text}' LIMIT 1"));
             if ($query) {
                 $theText = "✔️ فایل با موفقیت حذف شد ... !";
@@ -90,7 +91,7 @@ if ($tc == "private") {
             $theText = " 🗂-لطفا فایل مورد نظر خود را جهت آپلود در ربات ارسال کنید:";
             SendMessage($chat_id, $theText, "HTML", $message_id, $adminBack);
             $conn->query("UPDATE `{$usersTable}` SET `step`='uplods-$code' WHERE `id` = '{$from_id}' LIMIT 1");
-        } else if (strpos($step, "uplods-") !== false) {
+        } else if (str_starts_with($step, "uplods-") !== false) {
             $rand = str_replace("uplods-", "", $step);
             if (isset($message->document)) {
                 $file_id = $message->document->file_id;
@@ -138,7 +139,14 @@ if ($tc == "private") {
                     $time = date('h:i:s');
                     $date = date('Y/m/d');
                     $theCaption = "📍فایل شما با موفقیت داخل دیتابیس ذخیره شده ... !\n♻️ جهت ادامه فرایند آپلود(آپلود گروهی)، فایل بعدی را ارسال نمایید و در غیر این صورت بر روی گزینه «⛔️پایان آپلود» کلیک نمایید.\n▪️ شناسه فایل شما : <code>$rand</code>\n\n➖ بقیه اطلاعات فایل شما : \n\n💾  حجم فایل : <b>$size</b>\n📥لینک: https://t.me/" . $usernamebot . "?start=_" . $rand;
-                    sendPhoto($chat_id, $file_id, $theCaption, $message_id, "HTML", $endUpload);
+                    bot('sendphoto', [
+                        'chat_id' => $chat_id,
+                        'photo' => $file_id,
+                        'caption' => $theCaption,
+                        'reply_to_message_id' => $message_id,
+                        'parse_mode' => "HTML",
+                        'reply_markup' => $endUpload
+                    ]);
                     $conn->query("INSERT INTO `{$filesTable}` (`code`, `file_id`, `file`, `chanel`, `file_size`, `user_id`, `date`, `time`, `dl`) VALUES ('{$rand}', '{$file_id}', 'photo', '', '{$file_size}', '{$from_id}', '{$date}', '{$time}', '1')");
                 } else {
                     $theText = "▪️ خطا , این فایل قبلا در دیتابیس اپلود شده است ... !";
@@ -229,7 +237,7 @@ if ($tc == "private") {
                 $theText = "▪️ربات شما هیچ کاربری ندارید... !";
                 SendMessage($chat_id, $theText, "HTML", $message_id);
             }
-        } elseif (strpos($data, "Dnext_") !== false) {
+        } elseif (str_starts_with($data, "Dnext_") !== false) {
             $last_id = str_replace('Dnext_', "", $data);
             $query = mysqli_query($conn, "SELECT * FROM `{$usersTable}`");
             $num = mysqli_num_rows($query);
@@ -260,7 +268,7 @@ if ($tc == "private") {
                     ]
                 ]));
             }
-        } elseif (strpos($data, "Dprev_") !== false) {
+        } elseif (str_starts_with($data, "Dprev_") !== false) {
             $last_id = str_replace('Dprev_', "", $data);
             $query = mysqli_query($conn, "SELECT * FROM `{$usersTable}`");
             $num = mysqli_num_rows($query);
